@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import pool from '../db/index.js';
 
 export async function registerUser({email,password,name}){
@@ -42,12 +43,25 @@ if (result.rows.length === 0){
 }
     const user=result.rows[0];
     const isMatch= await bcrypt.compare(password,user.password_hash);
+    
     if(!isMatch){
         const error=new Error("INVALID_CREDENTIALS")
         error.statusCode=401;
         throw error;
     }
-    delete user.password_hash;
-    return user;
+    const token =jwt.sign({
+        id:user.id,
+        email:user.email
+    },process.env.JWT_SECRET,{
+        expiresIn:'1h'
+    });
+    return({
+        token,
+        user:{
+            id:user.id,
+            email:user.email,
+            name:user.name,
+        },
+    });
 
 }

@@ -3,7 +3,7 @@ import {registerUser, loginUser} from '../services/auth.service.js';
 // BASIC VALIDATION (email,password pressent or not) -> TRY REGISTER USER OR CATCH ERROR-> 
 export async function register(req,res){
 
-    const {email,password,name} =req.body;
+    const {email,password,name} = req.body;
     if(!email || !password){
         return res.status(400).json({
             ok:false,
@@ -43,10 +43,11 @@ export async function login(req,res){
         })
     }
     try {
-        const user = await loginUser({email,password});
+        const {token,user} = await loginUser({email,password});
         return res.status(200).json({
             ok:true,
             message:'Login successful',
+            token,
             user
         })
         
