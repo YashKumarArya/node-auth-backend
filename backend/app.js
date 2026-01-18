@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import authRoutes from './routes/auth.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 const app = express();
 
@@ -11,7 +12,8 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
-app.use('/auth',authRoutes)
+app.use('/auth',authRoutes);
+app.use('/user',userRoutes);
 //  basic health check of server
  app.get('/',(req,res)=>{
     res.status(200).json({ok:true, message:'server is running'})

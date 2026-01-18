@@ -1,23 +1,53 @@
-import jwt from 'jsonwebtoken';
+// import jwt from 'jsonwebtoken';
 
-export function authenticate(req,res,next){
-     const authHeader = req.headers.authorization;
+// export function authenticate(req,res,next){
+//      const authHeader = req.headers.authorization;
 
-     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-return res.status(401).json({
-    ok:false,
-    message:"Authorization is missing"});
-      }
-    const token = auth.Header.split(" ")[1];
-// Attach User info to request
-      try {
-        const decoded = jwt.verify(token,process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-      } catch (err) {
-        return res.status(401).json({
-            ok:false,
-            message:"Invalid or expired token"
-        })
-      }
+//      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+// return res.status(401).json({
+//     ok:false,
+//     message:"Authorization is missing"});
+//       }
+//     const token = auth.Header.split(" ")[1];
+// // Attach User info to request
+//       try {
+//         const decoded = jwt.verify(token,process.env.JWT_SECRET);
+//         req.user = decoded;
+//         next();
+//       } catch (err) {
+//         return res.status(401).json({
+//             ok:false,
+//             message:"Invalid or expired token"
+//         })
+//       }
+// }
+import jwt from "jsonwebtoken";
+
+const authenticate = (req, res, next)=> {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      ok: false,
+      message: "Authorization is missing",
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Attach user info to request
+    req.user = decoded; // { id, email, iat, exp }
+
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      ok: false,
+      message: "Invalid or expired token",
+    });
+  }
 }
+
+export default authenticate;
