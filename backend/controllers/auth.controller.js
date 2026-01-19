@@ -1,4 +1,7 @@
-import {registerUser, loginUser} from '../services/auth.service.js';
+// controllers/auth.controller.js
+import {registerUser, loginUser, logoutUser, refreshAccessToken, logoutAllDevices} from '../services/auth.service.js';
+import { generateAccessToken } from '../utils/token.js';
+
 
 // BASIC VALIDATION (email,password pressent or not) -> TRY REGISTER USER OR CATCH ERROR-> 
 export async function register(req,res){
@@ -34,20 +37,27 @@ export async function register(req,res){
         }); 
     }
 }
+
 export async function login(req,res){
     const {email,password}=req.body;
     if(!email || !password){
-        res.status(400).json({
+        return res.status(400).json({
             ok:false,
             message:'Email and password are required'
         })
     }
     try {
-        const {token,user} = await loginUser({email,password});
+        const {accessToken,refreshToken,user} = await loginUser({email,password});
+        res.cookie('refreshToken',refreshToken,{
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
         return res.status(200).json({
             ok:true,
             message:'Login successful',
-            token,
+            accessToken,
             user
         })
         
@@ -65,4 +75,61 @@ export async function login(req,res){
     })
         
     }
+}
+export async function refresh(req, res) {
+  try {
+    const incomingToken = req.cookies?.refreshToken;
+
+    const { userId, refreshToken } =
+      await refreshAccessToken(incomingToken);
+
+    const accessToken = generateAccessToken({ id: userId });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({
+      ok: true,
+      accessToken,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(401).json({
+      ok: false,
+      message: "Unauthorized",
+    });
+  }
+}
+
+export async function logout(req, res) {
+  await logoutUser(req.cookies?.refreshToken);
+  res.clearCookie("refreshToken");
+
+  return res.json({ ok: true });
+}
+export async function logoutAll(req, res) {
+  try {
+    const userId = req.user.id; // comes from access token
+
+    await logoutAllDevices(userId);
+
+    // Clear cookie for THIS device
+    res.clearCookie("refreshToken");
+
+    return res.json({
+      ok: true,
+      message: "Logged out from all devices",
+    });
+  } catch (err) {
+    console.error("Logout all error:", err);
+
+    return res.status(500).json({
+      ok: false,
+      message: "Could not logout from all devices",
+    });
+  }
 }

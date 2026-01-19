@@ -1,3 +1,4 @@
+// routes/user.routes.js
 import express from "express";
 import authenticate from "../middleware/auth.middleware.js";
 
