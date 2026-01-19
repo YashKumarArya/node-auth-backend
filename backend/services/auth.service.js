@@ -4,14 +4,14 @@ import pool from '../db/index.js';
 import { generateAccessToken, generateRefreshTokenPlain, hashRefreshToken, compareRefreshToken } from '../utils/token.js';
 
 export async function registerUser({email,password,name}){
-    const hasedPassword = await bcrypt.hash(password,10);
+    const hashedPassword = await bcrypt.hash(password,10);
 
     try {
         const result =await pool.query(
             `INSERT INTO users(email,password_hash,name)
              VALUES ($1,$2,$3) 
              RETURNING id, email, name, created_at`,
-             [email.trim().toLowerCase(),hasedPassword,name?.trim() || null]
+             [email.trim().toLowerCase(),hashedPassword,name?.trim() || null]
         )
         // success response
         return result.rows[0];
@@ -50,7 +50,7 @@ if (result.rows.length === 0){
         error.statusCode=401;
         throw error;
     }
-    const accessToken = generateAccessToken(user);
+    const accessToken = generateAccessToken({ id: user.id });
     const refreshToken = generateRefreshTokenPlain();
     const hashedRefreshToken = await hashRefreshToken(refreshToken); 
     
@@ -144,4 +144,17 @@ export async function logoutUser(incomingToken) {
       break;
     }
   }
+}
+export async function logoutAllDevices(userId) {
+  if (!userId) {
+    throw new Error("USER_ID_REQUIRED");
+  }
+
+  await pool.query(
+    `
+    DELETE FROM refresh_tokens
+    WHERE user_id = $1
+    `,
+    [userId]
+  );
 }

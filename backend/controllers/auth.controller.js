@@ -1,6 +1,7 @@
 // controllers/auth.controller.js
-import {registerUser, loginUser, logoutUser, refreshAccessToken} from '../services/auth.service.js';
+import {registerUser, loginUser, logoutUser, refreshAccessToken, logoutAllDevices} from '../services/auth.service.js';
 import { generateAccessToken } from '../utils/token.js';
+
 
 // BASIC VALIDATION (email,password pressent or not) -> TRY REGISTER USER OR CATCH ERROR-> 
 export async function register(req,res){
@@ -36,10 +37,11 @@ export async function register(req,res){
         }); 
     }
 }
+
 export async function login(req,res){
     const {email,password}=req.body;
     if(!email || !password){
-        res.status(400).json({
+        return res.status(400).json({
             ok:false,
             message:'Email and password are required'
         })
@@ -95,9 +97,10 @@ export async function refresh(req, res) {
       accessToken,
     });
   } catch (err) {
+    console.error(err);
     return res.status(401).json({
       ok: false,
-      message: err.message,
+      message: "Unauthorized",
     });
   }
 }
@@ -107,4 +110,26 @@ export async function logout(req, res) {
   res.clearCookie("refreshToken");
 
   return res.json({ ok: true });
+}
+export async function logoutAll(req, res) {
+  try {
+    const userId = req.user.id; // comes from access token
+
+    await logoutAllDevices(userId);
+
+    // Clear cookie for THIS device
+    res.clearCookie("refreshToken");
+
+    return res.json({
+      ok: true,
+      message: "Logged out from all devices",
+    });
+  } catch (err) {
+    console.error("Logout all error:", err);
+
+    return res.status(500).json({
+      ok: false,
+      message: "Could not logout from all devices",
+    });
+  }
 }
