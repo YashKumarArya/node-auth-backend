@@ -1,4 +1,6 @@
-import {registerUser, loginUser} from '../services/auth.service.js';
+// controllers/auth.controller.js
+import {registerUser, loginUser, logoutUser, refreshAccessToken} from '../services/auth.service.js';
+import { generateAccessToken } from '../utils/token.js';
 
 // BASIC VALIDATION (email,password pressent or not) -> TRY REGISTER USER OR CATCH ERROR-> 
 export async function register(req,res){
@@ -43,11 +45,17 @@ export async function login(req,res){
         })
     }
     try {
-        const {token,user} = await loginUser({email,password});
+        const {accessToken,refreshToken,user} = await loginUser({email,password});
+        res.cookie('refreshToken',refreshToken,{
+            httpOnly: true,
+            sameSite: "strict",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
         return res.status(200).json({
             ok:true,
             message:'Login successful',
-            token,
+            accessToken,
             user
         })
         
@@ -65,4 +73,38 @@ export async function login(req,res){
     })
         
     }
+}
+export async function refresh(req, res) {
+  try {
+    const incomingToken = req.cookies?.refreshToken;
+
+    const { userId, refreshToken } =
+      await refreshAccessToken(incomingToken);
+
+    const accessToken = generateAccessToken({ id: userId });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({
+      ok: true,
+      accessToken,
+    });
+  } catch (err) {
+    return res.status(401).json({
+      ok: false,
+      message: err.message,
+    });
+  }
+}
+
+export async function logout(req, res) {
+  await logoutUser(req.cookies?.refreshToken);
+  res.clearCookie("refreshToken");
+
+  return res.json({ ok: true });
 }

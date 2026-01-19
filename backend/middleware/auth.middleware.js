@@ -21,6 +21,7 @@
 //         })
 //       }
 // }
+// middleware/auth.middleware.js
 import jwt from "jsonwebtoken";
 
 const authenticate = (req, res, next)=> {
