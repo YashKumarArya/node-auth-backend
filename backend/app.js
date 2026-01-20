@@ -8,6 +8,7 @@ import authRoutes from './modules/auth/auth.routes.js';
 import userRoutes from './modules/users/user.routes.js';
 import { env } from "./config/env.js";
 import { globalErrorHandler } from "./middleware/error.middleware.js";
+import homepageRoutes from './modules/homepage/homepage.routes.js';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(cookieParser());
 // Routes
 app.use('/auth',authRoutes);
 app.use('/user',userRoutes);
+app.use('/homepage',homepageRoutes);
 // basic health check of server
  app.get('/',(req,res)=>{
     res.status(200).json({ok:true, message:'server is running'})
