@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt';
 import pool from '../../db/index.js';
 import { generateAccessToken, generateRefreshTokenPlain, hashRefreshToken, compareRefreshToken } from '../../utils/token.js';
 import AppError from '../../utils/AppError.js';
-import { th } from 'zod/v4/locales';
 
 export async function registerUser({email,password,name}){
     const hashedPassword = await bcrypt.hash(password,10);

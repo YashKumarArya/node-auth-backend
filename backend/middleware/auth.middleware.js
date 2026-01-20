@@ -1,14 +1,14 @@
 // backend/middleware/auth.middleware.js
 import {verifyAccessToken} from '../config/jwt.js';
+import AppError from '../utils/AppError.js';
 
 const authenticate = (req, res, next)=> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      ok: false,
-      message: "Authorization is missing",
-    });
+    return next(
+      new AppError("AUTHORIZATION_MISSING",401)
+    )
   }
 
   const token = authHeader.split(" ")[1];
@@ -21,10 +21,9 @@ const authenticate = (req, res, next)=> {
 
     next();
   } catch (err) {
-    return res.status(401).json({
-      ok: false,
-      message: "Invalid or expired token",
-    });
+    return next(
+      new AppError("INVALID_OR_EXPIRED_TOKEN",401)
+    )
   }
 }
 

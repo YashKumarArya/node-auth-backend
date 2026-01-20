@@ -7,15 +7,15 @@ import {env} from '../../config/env.js';
 // BASIC VALIDATION (email,password pressent or not) -> TRY REGISTER USER OR CATCH ERROR-> 
 export async function register(req,res,next){
 
-    const {email,password,name} = req.body;
-    if(!email || !password){
-        return res.status(400).json({
-            ok:false,
-            message:'email and password are required'
-        })
-    }
+    // const {email,password,name} = req.body;
+    // if(!email || !password){
+    //     return res.status(400).json({
+    //         ok:false,
+    //         message:'email and password are required'
+    //     })
+    // }
     try {
-        const user = await registerUser({email,password,name});
+        const user = await registerUser(req.body);
 
         res.status(201).json({
             ok:true,
@@ -29,15 +29,15 @@ export async function register(req,res,next){
 }
 
 export async function login(req,res,next){
-    const {email,password}=req.body;
-    if(!email || !password){
-        return res.status(400).json({
-            ok:false,
-            message:'Email and password are required'
-        })
-    }
+    // const {email,password}=req.body;
+    // if(!email || !password){
+    //     return res.status(400).json({
+    //         ok:false,
+    //         message:'Email and password are required'
+    //     })
+    // }
     try {
-        const {accessToken,refreshToken,user} = await loginUser({email,password});
+        const {accessToken,refreshToken,user} = await loginUser(req.body);
         res.cookie('refreshToken',refreshToken,{
             httpOnly: true,
             sameSite: "strict",
