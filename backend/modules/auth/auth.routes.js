@@ -1,8 +1,8 @@
-// routes/auth.routes.js
+// backend/modules/auth/auth.routes.js
 import express from 'express';
-import { authRateLimiter } from '../middleware/rateLimit.middleware.js';
-import authenticate from '../middleware/auth.middleware.js';
-import {register,login,refresh,logout,logoutAll} from '../controllers/auth.controller.js'
+import { authRateLimiter } from '../../middleware/rateLimit.middleware.js';
+import authenticate from '../../middleware/auth.middleware.js';
+import {register,login,refresh,logout,logoutAll} from './auth.controller.js';
 
 const router = express.Router();
 

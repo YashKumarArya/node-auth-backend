@@ -1,10 +1,11 @@
-// controllers/auth.controller.js
-import {registerUser, loginUser, logoutUser, refreshAccessToken, logoutAllDevices} from '../services/auth.service.js';
-import { generateAccessToken } from '../utils/token.js';
+// backend/modules/auth/auth.controller.js
+import {registerUser, loginUser, logoutUser, refreshAccessToken, logoutAllDevices} from './auth.service.js';
+import { generateAccessToken } from '../../utils/token.js';
+import {env} from '../../config/env.js';
 
 
 // BASIC VALIDATION (email,password pressent or not) -> TRY REGISTER USER OR CATCH ERROR-> 
-export async function register(req,res){
+export async function register(req,res,next){
 
     const {email,password,name} = req.body;
     if(!email || !password){
@@ -22,23 +23,12 @@ export async function register(req,res){
             user:user});
             
     } catch (err) {
-        console.error(err);
-        if(err.message === 'EMAIL_ALREADY_EXISTS' ){
-            return res.status(err.statusCode).json({
-                ok:false,
-                message:'User already Exists'
-            });
-        }
-        console.error(err);
-
-        return res.status(500).json({
-            ok:false,
-            message:'Internal server error'
-        }); 
-    }
+      console.error("[Auth:Register]", err);
+      next(err);
+  }
 }
 
-export async function login(req,res){
+export async function login(req,res,next){
     const {email,password}=req.body;
     if(!email || !password){
         return res.status(400).json({
@@ -51,7 +41,7 @@ export async function login(req,res){
         res.cookie('refreshToken',refreshToken,{
             httpOnly: true,
             sameSite: "strict",
-            secure: process.env.NODE_ENV === "production",
+            secure: env.NODE_ENV === "production",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         })
         return res.status(200).json({
@@ -62,21 +52,11 @@ export async function login(req,res){
         })
         
     } catch (err) {
-        if(err.message === 'INVALID_CREDENTIALS'){
-        return res.status(401).json({
-            ok:false,
-            message:'Invalid email or password'
-        });
-    }
-    console.error('Login error:',err);
-    return res.status(500).json({
-        ok:false,
-        message:"Internal server error"
-    })
-        
-    }
+       console.error("[Auth:Login]", err);
+       next(err); 
+  }
 }
-export async function refresh(req, res) {
+export async function refresh(req, res, next) {
   try {
     const incomingToken = req.cookies?.refreshToken;
 
@@ -88,7 +68,7 @@ export async function refresh(req, res) {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
+      secure: env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -96,22 +76,25 @@ export async function refresh(req, res) {
       ok: true,
       accessToken,
     });
-  } catch (err) {
-    console.error(err);
-    return res.status(401).json({
-      ok: false,
-      message: "Unauthorized",
-    });
+  } catch (err) { 
+    console.error("[Auth:Refresh]", err);
+    next(err);
   }
 }
 
-export async function logout(req, res) {
-  await logoutUser(req.cookies?.refreshToken);
-  res.clearCookie("refreshToken");
+export async function logout(req, res, next) {
+  try {
+    await logoutUser(req.cookies?.refreshToken);
+    res.clearCookie("refreshToken");
+    return res.json({ ok: true });
+    
+  } catch (err) {
+    console.error("[Auth:Logout]", err);
+    next(err);
+  }
 
-  return res.json({ ok: true });
 }
-export async function logoutAll(req, res) {
+export async function logoutAll(req, res, next) {
   try {
     const userId = req.user.id; // comes from access token
 
@@ -125,11 +108,7 @@ export async function logoutAll(req, res) {
       message: "Logged out from all devices",
     });
   } catch (err) {
-    console.error("Logout all error:", err);
-
-    return res.status(500).json({
-      ok: false,
-      message: "Could not logout from all devices",
-    });
+    console.error("[Auth:LogoutAll]", err);
+    next(err);
   }
 }

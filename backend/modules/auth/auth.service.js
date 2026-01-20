@@ -1,7 +1,9 @@
-// services/auth.service.js
+// backend/modules/auth/auth.service.js
 import bcrypt from 'bcrypt';
-import pool from '../db/index.js';
-import { generateAccessToken, generateRefreshTokenPlain, hashRefreshToken, compareRefreshToken } from '../utils/token.js';
+import pool from '../../db/index.js';
+import { generateAccessToken, generateRefreshTokenPlain, hashRefreshToken, compareRefreshToken } from '../../utils/token.js';
+import AppError from '../../utils/AppError.js';
+import { th } from 'zod/v4/locales';
 
 export async function registerUser({email,password,name}){
     const hashedPassword = await bcrypt.hash(password,10);
@@ -17,9 +19,7 @@ export async function registerUser({email,password,name}){
         return result.rows[0];
     } catch (err) {
         if(err.code === '23505'){
-            const error= new Error('EMAIL_ALREADY_EXISTS');
-            error.statusCode = 400;
-            throw error;
+          throw new AppError('EMAIL_ALREADY_EXISTS',400)
         }
 
        throw err;
@@ -38,17 +38,16 @@ export async function loginUser({email,password}){
     [email.toLowerCase()]
   );
 if (result.rows.length === 0){
-    const error= new Error("INVALID_CREDENTIALS");
-    error.statusCode=401;
-    throw error;
+    throw new AppError('INVALID_CREDENTIALS',401);
+    // const error= new Error("INVALID_CREDENTIALS");
+    // error.statusCode=401;
+    // throw error;
 }
     const user=result.rows[0];
     const isMatch= await bcrypt.compare(password,user.password_hash);
     
     if(!isMatch){
-        const error=new Error("INVALID_CREDENTIALS")
-        error.statusCode=401;
-        throw error;
+       throw new AppError('INVALID_CREDENTIALS',401);
     }
     const accessToken = generateAccessToken({ id: user.id });
     const refreshToken = generateRefreshTokenPlain();
@@ -73,7 +72,7 @@ if (result.rows.length === 0){
 }
 export async function refreshAccessToken(incomingToken) {
   if (!incomingToken) {
-    throw new Error("NO_REFRESH_TOKEN");
+   throw new AppError('NO_REFRESH_TOKEN',401);
   }
 
   const result = await pool.query(
@@ -98,7 +97,7 @@ export async function refreshAccessToken(incomingToken) {
   }
 
   if (!matchedRow) {
-    throw new Error("INVALID_REFRESH_TOKEN");
+    throw new AppError("INVALID_REFRESH_TOKEN", 401);
   }
 
   // Rotate token
@@ -147,7 +146,7 @@ export async function logoutUser(incomingToken) {
 }
 export async function logoutAllDevices(userId) {
   if (!userId) {
-    throw new Error("USER_ID_REQUIRED");
+    throw new AppError("USER_ID_REQUIRED", 400);
   }
 
   await pool.query(

@@ -1,6 +1,6 @@
-// routes/user.routes.js
+// backend/modules/users/user.routes.js
 import express from "express";
-import authenticate from "../middleware/auth.middleware.js";
+import authenticate from "../../middleware/auth.middleware.js";
 
 const router = express.Router();
 

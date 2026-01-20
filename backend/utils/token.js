@@ -1,7 +1,8 @@
-// utils/tokens.js
+// backend/utils/token.js
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { signAccessToken } from "../config/jwt.js";
 
 export function generateRefreshTokenPlain() {
   // 40 bytes -> 80 hex chars
@@ -17,9 +18,5 @@ export async function compareRefreshToken(plainToken, hashed) {
 }
 
 export function generateAccessToken(payload) {
-  return jwt.sign(
-   payload,
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" } // change to 15m or what you choose
-  );
+  return signAccessToken(payload);
 }
