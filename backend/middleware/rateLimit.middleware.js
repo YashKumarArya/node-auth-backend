@@ -1,4 +1,4 @@
-// middleware/rateLimit.middleware.js
+// backend/middleware/rateLimit.middleware.js
 import rateLimit from 'express-rate-limit';
 
 export const authRateLimiter = rateLimit({

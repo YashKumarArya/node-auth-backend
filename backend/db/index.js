@@ -1,17 +1,16 @@
-// db/index.js
+// backend/db/index.js
 import pkg from 'pg';
-import dotenv from 'dotenv';
+import { env } from "../config/env.js";
+
+
 const {Pool}= pkg;
-dotenv.config();
-
-
 const pool =new Pool(
     {
-        host:process.env.DB_HOST,
-        port:process.env.DB_PORT,
-        user:process.env.DB_USER,
-        // password:process.env.DB_PASSWORD,
-        database:process.env.DB_NAME
+        host:env.DB.HOST,
+        port:env.DB.PORT,
+        user:env.DB.USER,
+        password:env.DB.PASSWORD,
+        database:env.DB.NAME
     }
 );
 pool.on('connect',()=>{

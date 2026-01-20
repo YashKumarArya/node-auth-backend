@@ -1,53 +1,29 @@
-// import jwt from 'jsonwebtoken';
-
-// export function authenticate(req,res,next){
-//      const authHeader = req.headers.authorization;
-
-//      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-// return res.status(401).json({
-//     ok:false,
-//     message:"Authorization is missing"});
-//       }
-//     const token = auth.Header.split(" ")[1];
-// // Attach User info to request
-//       try {
-//         const decoded = jwt.verify(token,process.env.JWT_SECRET);
-//         req.user = decoded;
-//         next();
-//       } catch (err) {
-//         return res.status(401).json({
-//             ok:false,
-//             message:"Invalid or expired token"
-//         })
-//       }
-// }
-// middleware/auth.middleware.js
-import jwt from "jsonwebtoken";
+// backend/middleware/auth.middleware.js
+import {verifyAccessToken} from '../config/jwt.js';
+import AppError from '../utils/AppError.js';
 
 const authenticate = (req, res, next)=> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      ok: false,
-      message: "Authorization is missing",
-    });
+    return next(
+      new AppError("AUTHORIZATION_MISSING",401)
+    )
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyAccessToken(token);
 
     // Attach user info to request
     req.user = decoded; // { id, email, iat, exp }
 
     next();
   } catch (err) {
-    return res.status(401).json({
-      ok: false,
-      message: "Invalid or expired token",
-    });
+    return next(
+      new AppError("INVALID_OR_EXPIRED_TOKEN",401)
+    )
   }
 }
 
