@@ -1,7 +1,7 @@
 // backend/modules/auth/auth.controller.js
 import {registerUser, loginUser, logoutUser, refreshAccessToken, logoutAllDevices} from './auth.service.js';
-import { generateAccessToken } from '../../utils/token.js';
-import {env} from '../../config/env.js';
+import { generateAccessToken } from '../../utils/accessToken.js';
+import { refreshCookieOptions } from '../../config/cookies.js';
 
 
 // BASIC VALIDATION (email,password pressent or not) -> TRY REGISTER USER OR CATCH ERROR-> 
@@ -29,21 +29,9 @@ export async function register(req,res,next){
 }
 
 export async function login(req,res,next){
-    // const {email,password}=req.body;
-    // if(!email || !password){
-    //     return res.status(400).json({
-    //         ok:false,
-    //         message:'Email and password are required'
-    //     })
-    // }
     try {
         const {accessToken,refreshToken,user} = await loginUser(req.body);
-        res.cookie('refreshToken',refreshToken,{
-            httpOnly: true,
-            sameSite: "strict",
-            secure: env.NODE_ENV === "production",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        })
+        res.cookie('refreshToken',refreshToken,refreshCookieOptions);
         return res.status(200).json({
             ok:true,
             message:'Login successful',
@@ -65,12 +53,7 @@ export async function refresh(req, res, next) {
 
     const accessToken = generateAccessToken({ id: userId });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     return res.json({
       ok: true,

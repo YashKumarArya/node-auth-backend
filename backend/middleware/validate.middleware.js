@@ -1,3 +1,4 @@
+// backend/middleware/validate.middleware.js
 import AppError from "../utils/AppError.js";
 
 export const validate =

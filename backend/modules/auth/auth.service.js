@@ -1,7 +1,8 @@
 // backend/modules/auth/auth.service.js
 import bcrypt from 'bcrypt';
 import pool from '../../db/index.js';
-import { generateAccessToken, generateRefreshTokenPlain, hashRefreshToken, compareRefreshToken } from '../../utils/token.js';
+import {  generateRefreshTokenPlain, hashRefreshToken, compareRefreshToken } from '../../utils/refreshToken.js';
+import { generateAccessToken } from '../../utils/accessToken.js';
 import AppError from '../../utils/AppError.js';
 
 export async function registerUser({email,password,name}){
