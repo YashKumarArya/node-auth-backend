@@ -1,6 +1,7 @@
 // backend/config/env.js
 import dotenv from "dotenv";
 
+
 dotenv.config();
 
 function requireEnv(key) {
@@ -19,8 +20,8 @@ export const env = {
     HOST: requireEnv("DB_HOST"),
     PORT: Number(requireEnv("DB_PORT")),
     USER: requireEnv("DB_USER"),
+    PASSWORD: process.env.DB_PASSWORD ?? "",
     NAME: requireEnv("DB_NAME"),
-    PASSWORD: process.env.DB_PASSWORD || null,
   },
 
   JWT: {
